@@ -1,0 +1,63 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { LazyImage } from "@/components/ui/lazy-image";
+import { categoryHeroImage, galleryImages } from "@/lib/catalog";
+import { displayCategoryLabel } from "@/lib/product-categories";
+import { categoriesFromProducts, categoryToSlug, usePublicProducts } from "@/lib/use-public-products";
+
+export const Route = createFileRoute("/collections/")({
+  head: () => ({
+    meta: [
+      { title: "Jewellery Collections | Twinklingz" },
+      { name: "description", content: "Explore curated Twinklingz jewellery collections for every mood and moment." },
+      { property: "og:title", content: "Jewellery Collections | Twinklingz" },
+      { property: "og:description", content: "Explore curated jewellery for every mood and moment." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Page,
+});
+
+function Page() {
+  const { data: products = [] } = usePublicProducts();
+  const categories = categoriesFromProducts(products);
+
+  return (
+    <main className="min-h-screen px-5 pb-24 pt-36 lg:px-10">
+      <header className="mx-auto max-w-7xl">
+        <p className="text-xs tracking-[0.24em] text-accent">CURATED FOR YOU</p>
+        <h1 className="mt-3 font-display text-6xl">Collections</h1>
+        <p className="mt-4 max-w-2xl text-muted-foreground">
+          Shop by category — each piece includes multiple studio angles on the product page.
+        </p>
+      </header>
+      <div className="mx-auto mt-10 grid max-w-7xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {categories.map((name) => (
+          <Link
+            key={name}
+            to="/collections/$slug"
+            params={{ slug: categoryToSlug(name) }}
+            className="group relative aspect-[4/3] overflow-hidden"
+          >
+            <LazyImage
+              src={
+                products.find((p) => displayCategoryLabel(p.category) === name)?.image ||
+                categoryHeroImage(name)
+              }
+              alt={`${name} collection`}
+              optimizeWidth={720}
+              className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-card-shade" />
+            <h2 className="absolute bottom-6 left-6 font-display text-4xl text-primary-foreground">{name}</h2>
+          </Link>
+        ))}
+      </div>
+      <div className="mx-auto mt-16 grid max-w-7xl grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-6">
+        {galleryImages.slice(0, 12).map((src, i) => (
+          <LazyImage key={`${src}-${i}`} src={src} alt="" optimizeWidth={280} className="aspect-square w-full object-cover" />
+        ))}
+      </div>
+    </main>
+  );
+}

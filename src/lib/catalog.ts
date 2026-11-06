@@ -1,0 +1,83 @@
+import { catalogEntries } from "@/lib/catalog-data.generated";
+import { displayCategoryLabel } from "@/lib/product-categories";
+
+export type Product = {
+  id: string;
+  slug: string;
+  sku: string;
+  name: string;
+  category: string;
+  price: number;
+  mrp?: number;
+  badge?: "NEW" | "BESTSELLER";
+  rating: number;
+  reviews: number;
+  image: string;
+  altImage: string;
+  images: readonly string[];
+  inStock?: boolean;
+  featured?: boolean;
+};
+
+const defaultCatalogImage = catalogEntries[0]?.images[0] ?? "/catalog/NEC-57165/1.png";
+
+export const products: Product[] = catalogEntries.map((entry, i) => ({
+  id: `p${i + 1}`,
+  slug: entry.slug,
+  sku: entry.sku,
+  name: entry.name,
+  category: displayCategoryLabel(entry.category),
+  price: entry.price,
+  badge: entry.badge,
+  rating: entry.rating,
+  reviews: entry.reviews,
+  image: entry.images[0] ?? defaultCatalogImage,
+  altImage: entry.images[1] ?? entry.images[0] ?? defaultCatalogImage,
+  images: entry.images,
+}));
+
+const pick = (sku: string, n = 1) => {
+  const entry = catalogEntries.find((e) => e.sku === sku);
+  return entry?.images[n - 1] ?? entry?.images[0] ?? products[0]?.image ?? "";
+};
+
+export const media = {
+  heroImage: pick("NEC-57165", 1),
+  categoriesImage: pick("NEC-57165-1", 1),
+  campaignImage: pick("NEC-53655", 1),
+  lookImage: pick("BRA-04", 1),
+  storyImage: pick("NEC-54155", 2),
+};
+
+/** Frames for scroll-scrub hero when no hero video is uploaded yet. */
+export const heroScrollFrames: string[] = [
+  pick("NEC-57165", 1),
+  pick("NEC-57165", 2),
+  pick("NEC-57165", 3),
+  pick("NEC-57165", 4),
+  pick("NEC-57165-1", 1),
+  pick("NEC-57165-1", 2),
+  pick("NEC-53655", 1),
+  pick("BRA-04", 1),
+].filter(Boolean);
+
+/** Every catalog photo for grids, social, and editorial sections. */
+export const allCatalogImages: string[] = catalogEntries.flatMap((e) => [...e.images]);
+
+export const galleryImages: string[] = allCatalogImages.slice(0, 24);
+
+export function categoryHeroImage(category: string): string {
+  const match = products.find((p) => displayCategoryLabel(p.category) === displayCategoryLabel(category));
+  return match?.image ?? media.categoriesImage;
+}
+
+export { categoryNames } from "@/lib/product-categories";
+
+export function getProductBySlug(slug: string): Product | undefined {
+  return products.find((p) => p.slug === slug);
+}
+
+export const formatPrice = (price: number) =>
+  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(
+    price,
+  );
